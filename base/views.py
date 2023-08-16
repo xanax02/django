@@ -31,7 +31,7 @@ def updateRoom(request, id):
     room = Room.objects.get(id=id)
     form = RoomForm(instance=room)
 
-    if request.method == 'POST':
+    if request.method == 'POST': 
         form = RoomForm(request.POST, instance=room)
         if form.is_valid():
             form.save()
@@ -39,3 +39,12 @@ def updateRoom(request, id):
 
     context = {'form': form}
     return render(request, 'base/room_form.html', context)
+
+
+def deleteRoom(request, id):
+    room = Room.objects.get(id=id)
+    if request.method == 'POST':
+        room.delete()
+        print("deleted")
+        return redirect('home')
+    return render(request, 'base/delete.html', {'obj': room})
