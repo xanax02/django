@@ -5,6 +5,7 @@ from .models import Room, Topic
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from .forms import RoomForm
 
@@ -12,25 +13,39 @@ from .forms import RoomForm
 
 
 def loginPage(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        # try:
-        #     User.objects.get(username=username)
-        # except:
-        #     messages.error(request, 'user doesnot exist')
+        try:
+            User.objects.get(username=username)
+        except:
+            messages.error(request, 'user doesnot exist')
 
-        # user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=username, password=password)
 
-        # if user is not None:
-        #     login(request=request, user=user)
-        #     return redirect('home')
-        # else:
-        #     messages.error(request, 'username or password doesnot exist')
+        if user is not None:
+            login(request=request, user=user)
+            return redirect('home')
+        else:
+            messages.error(request, 'username or password doesnot exist')
 
     context = {}
     return render(request, "base/login_register.html", context)
+
+
+def registerPage(request):
+    form = UserCreationForm()
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid:
+            user = form.save(commit=False)
+            user.username = user.username.lower()
+            user.save()
 
 
 def home(request):
