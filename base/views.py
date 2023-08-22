@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.db.models import Q
-from .models import Room, Topic
+from .models import Room, Topic, Message
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -46,6 +46,10 @@ def registerPage(request):
             user = form.save(commit=False)
             user.username = user.username.lower()
             user.save()
+            login(request=request, user=user)
+            return redirect('home')
+        else:
+            messages.error(request, "Something went wrong")
 
 
 def home(request):
@@ -63,7 +67,19 @@ def home(request):
 
 def room(request, id):
     room = Room.objects.get(id=id)
-    context = {'room': room}
+    room_messages = room.message_set.all().order_by('-created')
+    participants = room.participants.all()
+
+    if request.method == 'POST':
+        message = Message.objects.create(
+            user=request.user,
+            room=room,
+            body=request.POST.get('body')
+        )
+        return redirect('room', id=id)
+
+    context = {'room': room, 'room_messages': room_messages,
+               'participants': participants}
     return render(request, 'base/room.html', context)
 
 
