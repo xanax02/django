@@ -31,15 +31,9 @@ def vote(request, question_id):
     question = get_object_or_404(Question, id = question_id)
     try:
         selected_choice = question.choice_set.get(id = request.POST["choice"])
-    except (KeyError, Choice.DoesNotExist):
-        return render(
-            request,
-            {
-                "question": question,
-                "error_message": "You didnot select a choice"
-            }
-        )
+    except:
+        return render(request, 'polls/details.html', {"question": question, "error_message": "Your havenot selected any choice"})
     else:
         selected_choice.votes+=1
         selected_choice.save()
-        return HttpResponseRedirect(reverse("polls:results"), args=(question.id,))
+        return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
